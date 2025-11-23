@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WikiExplorer - Temukan Informasi di Wikipedia</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Reset dan variabel */
+        :root {
+            --primary-color: #3366cc;
+            --secondary-color: #f8f9fa;
+            --accent-color: #ff6b6b;
+            --text-color: #333;
+            --light-text: #666;
+            --border-color: #e0e0e0;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--primary-color), #2541b2);
+            color: white;
+            padding: 1.5rem 0;
+            box-shadow: var(--shadow);
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .logo i {
+            font-size: 2rem;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        nav a:hover {
+            color: var(--accent-color);
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 4rem 0;
+            text-align: center;
+            background: linear-gradient(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.9)), 
+                        url('https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80');
+            background-size: cover;
+            background-position: center;
+        }
+
+        .hero h1 {
+            font-size: 2.8rem;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            max-width: 700px;
+            margin: 0 auto 2rem;
+            color: var(--light-text);
+        }
+
+        /* Search Section */
+        .search-container {
+            max-width: 700px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .search-box {
+            display: flex;
+            box-shadow: var(--shadow);
+            border-radius: 50px;
+            overflow: hidden;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 1rem 1.5rem;
+            border: none;
+            font-size: 1.1rem;
+            outline: none;
+        }
+
+        .search-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0 1.8rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .search-btn:hover {
+            background-color: #2541b2;
+        }
+
+        .search-suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 0 0 10px 10px;
+            box-shadow: var(--shadow);
+            z-index: 10;
+            display: none;
+        }
+
+        .suggestion-item {
+            padding: 0.8rem 1.5rem;
+            cursor: pointer;
+            border-bottom: 1px solid var(--border-color);
+            transition: var(--transition);
+        }
+
+        .suggestion-item:hover {
+            background-color: var(--secondary-color);
+        }
+
+        /* Results Section */
+        .results-section {
+            padding: 3rem 0;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: var(--primary-color);
+            font-size: 1.8rem;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .result-card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .result-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-image {
+            height: 180px;
+            width: 100%;
+            object-fit: cover;
+        }
+
+        .card-content {
+            padding: 1.5rem;
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+        }
+
+        .card-snippet {
+            color: var(--light-text);
+            margin-bottom: 1rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .card-date {
+            font-size: 0.9rem;
+            color: var(--light-text);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 100;
+            overflow-y: auto;
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 2rem auto;
+            width: 90%;
+            max-width: 800px;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            animation: modalFade 0.3s;
+        }
+
+        @keyframes modalFade {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            margin: 0;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .modal-image {
+            width: 100%;
+            max-height: 400px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-text {
+            line-height: 1.7;
+        }
+
+        .modal-date {
+            margin-top: 1rem;
+            font-style: italic;
+            color: var(--light-text);
+        }
+
+        /* Footer */
+        footer {
+            background-color: #2c3e50;
+            color: white;
+            padding: 2.5rem 0;
+            margin-top: 3rem;
+        }
+
+        .footer-content {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 2rem;
+        }
+
+        .footer-section {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .footer-section h3 {
+            margin-bottom: 1.2rem;
+            font-size: 1.3rem;
+        }
+
+        .footer-section p, .footer-section a {
+            color: #bdc3c7;
+            margin-bottom: 0.8rem;
+            display: block;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .footer-section a:hover {
+            color: white;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .social-links a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            transition: var(--transition);
+        }
+
+        .social-links a:hover {
+            background-color: var(--primary-color);
+            transform: translateY(-3px);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: #bdc3c7;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            nav ul {
+                gap: 1rem;
+            }
+            
+            .hero h1 {
+                font-size: 2.2rem;
+            }
+            
+            .results-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero h1 {
+                font-size: 1.8rem;
+            }
+            
+            .search-box {
+                flex-direction: column;
+                border-radius: 10px;
+            }
+            
+            .search-input {
+                border-radius: 10px 10px 0 0;
+            }
+            
+            .search-btn {
+                padding: 1rem;
+                border-radius: 0 0 10px 10px;
+            }
+            
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Loading */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .loading-spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--primary-color);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--light-text);
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            color: #ddd;
+        }
+        
+        /* Error state */
+        .error-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--accent-color);
+        }
+        
+        .error-state i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-book"></i>
+                    <span>WikiExplorer</span>
+                </div>
+                <nav>
+                    <ul>
+                        <li><a href="#">Beranda</a></li>
+                        <li><a href="#">Tentang</a></li>
+                        <li><a href="#">Kontak</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1>Jelajahi Dunia Pengetahuan</h1>
+            <p>Temukan informasi menarik dari jutaan artikel Wikipedia dengan pencarian yang mudah dan cepat.</p>
+            
+            <!-- Search Box -->
+            <div class="search-container">
+                <div class="search-box">
+                    <input type="text" class="search-input" placeholder="Cari di Wikipedia...">
+                    <button class="search-btn">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+                <div class="search-suggestions">
+                    <!-- Suggestions will appear here -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Results Section -->
+    <section class="results-section">
+        <div class="container">
+            <h2 class="section-title">Artikel Terpopuler</h2>
+            
+            <div class="loading">
+                <div class="loading-spinner"></div>
+                <p>Mencari artikel...</p>
+            </div>
+            
+            <div class="empty-state">
+                <i class="fas fa-search"></i>
+                <h3>Mulai pencarian Anda</h3>
+                <p>Gunakan kotak pencarian di atas untuk menemukan artikel Wikipedia</p>
+            </div>
+            
+            <div class="error-state" style="display: none;">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h3>Terjadi kesalahan</h3>
+                <p>Silakan coba lagi nanti atau periksa koneksi internet Anda</p>
+            </div>
+            
+            <div class="results-grid">
+                <!-- Results will appear here -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Modal -->
+    <div class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Judul Artikel</h2>
+                <button class="close-btn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <img src="" alt="" class="modal-image">
+                <div class="modal-text">
+                    <!-- Article content will appear here -->
+                </div>
+                <div class="modal-date">
+                    <i class="far fa-calendar-alt"></i>
+                    <span>Tanggal pembaruan: </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>WikiExplorer</h3>
+                    <p>Platform pencarian dan penjelajahan artikel Wikipedia yang mudah dan intuitif.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h3>Tautan Cepat</h3>
+                    <a href="#">Beranda</a>
+                    <a href="#">Tentang Kami</a>
+                    <a href="#">Kontak</a>
+                    <a href="#">Kebijakan Privasi</a>
+                </div>
+                <div class="footer-section">
+                    <h3>Kontak</h3>
+                    <p><i class="fas fa-map-marker-alt"></i> Jakarta, Indonesia</p>
+                    <p><i class="fas fa-envelope"></i> info@wikiexplorer.com</p>
+                    <p><i class="fas fa-phone"></i> +62 21 1234 5678</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2023 WikiExplorer. Semua hak dilindungi.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // DOM Elements
+        const searchInput = document.querySelector('.search-input');
+        const searchBtn = document.querySelector('.search-btn');
+        const searchSuggestions = document.querySelector('.search-suggestions');
+        const resultsGrid = document.querySelector('.results-grid');
+        const loading = document.querySelector('.loading');
+        const emptyState = document.querySelector('.empty-state');
+        const errorState = document.querySelector('.error-state');
+        const modal = document.querySelector('.modal');
+        const modalTitle = document.querySelector('.modal-title');
+        const modalImage = document.querySelector('.modal-image');
+        const modalText = document.querySelector('.modal-text');
+        const modalDate = document.querySelector('.modal-date span');
+        const closeBtn = document.querySelector('.close-btn');
+
+        // Event Listeners
+        searchBtn.addEventListener('click', performSearch);
+        searchInput.addEventListener('keyup', function(e) {
+            if (e.key === 'Enter') {
+                performSearch();
+            } else {
+                showSuggestions();
+            }
+        });
+        
+        closeBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+
+        // Initial load with popular articles
+        document.addEventListener('DOMContentLoaded', function() {
+            loadPopularArticles();
+        });
+
+        // Functions
+        async function performSearch() {
+            const query = searchInput.value.trim();
+            if (!query) return;
+            
+            showLoading();
+            hideEmptyState();
+            hideErrorState();
+            
+            try {
+                const results = await searchWikipedia(query);
+                displayResults(results);
+            } catch (error) {
+                console.error('Error searching Wikipedia:', error);
+                showErrorState('Terjadi kesalahan saat mencari. Silakan coba lagi.');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function showSuggestions() {
+            const query = searchInput.value.trim();
+            if (!query) {
+                searchSuggestions.style.display = 'none';
+                return;
+            }
+            
+            try {
+                const results = await searchWikipedia(query, 5);
+                displaySuggestions(results);
+            } catch (error) {
+                console.error('Error fetching suggestions:', error);
+            }
+        }
+
+        async function loadPopularArticles() {
+            // Default popular articles
+            const popularTopics = ['Indonesia', 'Teknologi', 'Sejarah', 'Ilmu Pengetahuan', 'Budaya'];
+            const randomTopic = popularTopics[Math.floor(Math.random() * popularTopics.length)];
+            
+            try {
+                const results = await searchWikipedia(randomTopic, 6);
+                displayResults(results);
+                hideEmptyState();
+            } catch (error) {
+                console.error('Error loading popular articles:', error);
+            }
+        }
+
+        async function searchWikipedia(query, limit = 10) {
+            try {
+                // Search API to get page titles
+                const searchResponse = await fetch(
+                    `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&srlimit=${limit}&format=json&origin=*`
+                );
+                
+                if (!searchResponse.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                
+                const searchData = await searchResponse.json();
+                
+                if (!searchData.query || !searchData.query.search || searchData.query.search.length === 0) {
+                    return [];
+                }
+                
+                // Get summaries for each search result
+                const results = [];
+                
+                for (const item of searchData.query.search) {
+                    try {
+                        const summaryResponse = await fetch(
+                            `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(item.title)}`
+                        );
+                        
+                        if (summaryResponse.ok) {
+                            const summaryData = await summaryResponse.json();
+                            
+                            results.push({
+                                id: item.pageid,
+                                title: summaryData.title,
+                                snippet: summaryData.extract || 'Tidak ada ringkasan tersedia',
+                                image: summaryData.thumbnail ? summaryData.thumbnail.source : getDefaultImage(),
+                                date: summaryData.timestamp ? formatDate(summaryData.timestamp) : 'Tidak diketahui',
+                                fullContent: summaryData.extract_html || `<p>${summaryData.extract || 'Konten tidak tersedia'}</p>`
+                            });
+                        }
+                    } catch (error) {
+                        console.error(`Error fetching summary for ${item.title}:`, error);
+                        // Continue with next item even if one fails
+                    }
+                }
+                
+                return results;
+            } catch (error) {
+                console.error('Error searching Wikipedia:', error);
+                throw error;
+            }
+        }
+
+        function getDefaultImage() {
+            // Return a default placeholder image
+            return 'https://via.placeholder.com/400x300?text=No+Image';
+        }
+
+        function formatDate(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleDateString('id-ID', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+
+        function displayResults(results) {
+            resultsGrid.innerHTML = '';
+            
+            if (results.length === 0) {
+                showEmptyState('Tidak ada hasil ditemukan untuk pencarian Anda.');
+                return;
+            }
+            
+            results.forEach(result => {
+                const card = document.createElement('div');
+                card.className = 'result-card';
+                card.innerHTML = `
+                    <img src="${result.image}" alt="${result.title}" class="card-image">
+                    <div class="card-content">
+                        <h3 class="card-title">${result.title}</h3>
+                        <p class="card-snippet">${result.snippet}</p>
+                        <div class="card-date">
+                            <i class="far fa-calendar-alt"></i>
+                            <span>Diperbarui: ${result.date}</span>
+                        </div>
+                    </div>
+                `;
+                
+                card.addEventListener('click', () => openModal(result));
+                resultsGrid.appendChild(card);
+            });
+        }
+
+        function displaySuggestions(results) {
+            searchSuggestions.innerHTML = '';
+            
+            results.forEach(result => {
+                const suggestion = document.createElement('div');
+                suggestion.className = 'suggestion-item';
+                suggestion.textContent = result.title;
+                
+                suggestion.addEventListener('click', () => {
+                    searchInput.value = result.title;
+                    searchSuggestions.style.display = 'none';
+                    performSearch();
+                });
+                
+                searchSuggestions.appendChild(suggestion);
+            });
+            
+            searchSuggestions.style.display = 'block';
+        }
+
+        function openModal(article) {
+            modalTitle.textContent = article.title;
+            modalImage.src = article.image;
+            modalImage.alt = article.title;
+            modalText.innerHTML = article.fullContent;
+            modalDate.textContent = article.date;
+            
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        function showLoading() {
+            loading.style.display = 'block';
+            resultsGrid.innerHTML = '';
+        }
+
+        function hideLoading() {
+            loading.style.display = 'none';
+        }
+
+        function showEmptyState(message) {
+            emptyState.innerHTML = `
+                <i class="fas fa-search"></i>
+                <h3>${message}</h3>
+                <p>Coba gunakan kata kunci yang berbeda atau lebih spesifik</p>
+            `;
+            emptyState.style.display = 'block';
+        }
+
+        function hideEmptyState() {
+            emptyState.style.display = 'none';
+        }
+
+        function showErrorState(message) {
+            errorState.innerHTML = `
+                <i class="fas fa-exclamation-triangle"></i>
+                <h3>${message}</h3>
+            `;
+            errorState.style.display = 'block';
+        }
+
+        function hideErrorState() {
+            errorState.style.display = 'none';
+        }
+    </script>
+</body>
+</html>
